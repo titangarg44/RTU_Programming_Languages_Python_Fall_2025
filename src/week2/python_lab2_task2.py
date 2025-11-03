@@ -15,17 +15,19 @@ Given the list:
 4. Create a dictionary `cubes` mapping each number to its cube.
 5. Print all results.
 """
+import random
 
 # Fill in your own numbers or generate 10 random integers
-numbers = []
+numbers = [random.randint(-10, 10) for _ in range(10)]
 
-# TODO: Implement comprehensions
-squares = []
-positives = []
-even_squares = set()
-cubes = {}
+# Implement comprehensions
+squares = [n**2 for n in numbers]                 # List of squares
+positives = [n for n in numbers if n > 0]         # List of positive numbers
+even_squares = {n**2 for n in numbers if n % 2 == 0}  # Set of squares of even numbers
+cubes = {n: n**3 for n in numbers}                # Dictionary: number → its cube
 
-# TODO: Print results
+# Print results
+print("Numbers:", numbers)
 print("Squares:", squares)
 print("Positives:", positives)
 print("Even squares:", even_squares)
