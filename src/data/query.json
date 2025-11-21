@@ -1,0 +1,13 @@
+[
+  {
+    "origin": "ATH"
+  },
+  {
+    "destination": "LON",
+    "price": 300
+  },
+  {
+    "departure_datetime": "2025-06-01 00:00",
+    "arrival_datetime": "2025-06-02 23:59"
+  }
+]

@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+from datetime import datetime
+import json
+from modules import (
+    parse_csv_file,
+    load_json_db,
+    validate_and_convert,
+    run_queries,
+)
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Flight schedule parser and query tool")
+    ap.add_argument("-i", help="Parse a single CSV file")
+    ap.add_argument("-d", help="Parse all CSV files in a folder")
+    ap.add_argument(
+        "-o", help="Custom output for valid flights JSON", default="db.json"
+    )
+    ap.add_argument("-j", help="Load existing DB JSON instead of parsing CSVs")
+    ap.add_argument("-q", help="Run queries from JSON file")
+    ap.add_argument("--studentid")
+    ap.add_argument("--name")
+    ap.add_argument("--lastname")
+
+    args = ap.parse_args()
+
+    valid, errors = [], []
+
+    # Load existing DB
+    if args.j:
+        valid = load_json_db(Path(args.j))
+    else:
+        # Parse single file
+        if args.i:
+            path = Path(args.i)
+            lines = path.read_text(encoding="utf-8").splitlines()
+            parse_csv_file(lines, valid, errors)
+
+        # Parse folder
+        if args.d:
+            folder = Path(args.d)
+            for file in sorted(folder.glob("*.csv")):
+                lines = file.read_text(encoding="utf-8").splitlines()
+                parse_csv_file(lines, valid, errors)
+
+        # Save valid flights DB
+        with open(args.o, "w", encoding="utf-8") as f:
+            json.dump(valid, f, indent=2)
+
+    # Write errors.txt
+    with open("errors.txt", "w", encoding="utf-8") as f:
+        for ln, text, reason in errors:
+            f.write(f"Line {ln}: {text} → {reason}\n")
+
+    # Run queries
+    if args.q:
+        if not (args.studentid and args.name and args.lastname):
+            raise SystemExit(
+                "When using -q you must provide --studentid --name --lastname"
+            )
+
+        query_data = json.loads(Path(args.q).read_text(encoding="utf-8"))
+        results = run_queries(valid, query_data)
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M")
+        outname = f"response_{args.studentid}_{args.name}_{args.lastname}_{ts}.json"
+        with open(outname, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2)
+        print(f"Saved query results -> {outname}")
+
+
+if __name__ == "__main__":
+    main()
